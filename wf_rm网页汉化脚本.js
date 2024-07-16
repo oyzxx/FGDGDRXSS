@@ -19,7 +19,12 @@
 			'Clear':'取消',
 			'Hide filters':'隐藏过滤',
 			'Show filters':'显示过滤',
+			'Copy to Clipboard':'复制到剪切板',
+			'Profile':'此人全部商品',
+			'Message':'消息',
 			'Logout':'注销',
+			'Show online first':'在线优先显示',
+			'Veiled only':'只显示未揭露',
 			'A list with all Rivens being sold currently.':'目前正在出售的所有紫卡的列表。',
 			'Filter positive stats..':'过滤正词属性。。',
 			'Home':'主页',
@@ -38,8 +43,38 @@
 			'Any MR':'段位需求',
 			'Any mod rank':'mod等级 过滤',
 			'unranked':'0级',
+			'Rank':'等级',
+			'Price':'价格',
+			'Seller':'卖家',
+			'Age':'时长',
+			'Riven':'紫卡',
+			'MR':'段位',
+			'Actions':'操作',
+			'Stats':'属性',
+			'> 1 day':'> 1 天',
+			'> 1 week':'> 1 周',
+			'> 1 year':'> 1 年',
+			'My Profile':'个人档案',
+			'This is your profile, your account is verified.':'这是您的个人资料，您的帐户已验证。',
+			'Account Linking':'第三方绑定',
+			'Name Change':'游戏ID变更',
+			'Status':'状态',
+			'Languages':'语言',
+			'Prefered Communication':'首选沟通方式',
+			'Timezone':'时区',
+			'Registered':'注册日期',
+			'History':'历史',
+			'Edit Profile':'编辑资料',
+			'new':'新',
+			'Editmode':'编辑模式',
+			'Riven is sold':'紫卡已卖出',
+			'Unlist Riven':'不列出紫卡',
+			'Delete, not sold':'删除',
 			'maxed':'满级',
 			'Show 25 Rivens':'显示25数量',
+			'Show 50 Rivens':'显示50数量',
+			'Show 100 Rivens':'显示100数量',
+			'Show 200 Rivens':'显示200数量',
 			'Any Recency':'时间 过滤',
 			'Any Weapon':'武器 过滤',
 			'Any Polarity':'极性 过滤',
@@ -147,30 +182,25 @@
     function traverseNode(node) {
 		// console.log('344');
         if (node.nodeType === Node.ELEMENT_NODE) { // 元素节点处理
-			// console.log(node.tagName)
-            // 元素节点属性翻译
 			let tagname=node.tagName.toLowerCase()
-            if (["stat name"].includes(node.className)) { // 属性
-				// console.log(node.className);
-				// console.log(node.innerText);
-				transElement(node, 'innerHTML');
-			}else if (["option","button","li","label","h1","h2","h3",].includes(tagname)){
-				transElement(node, 'innerHTML');
-			}else if (tagname=='input' && node.hasAttribute('placeholder')){
+            if (tagname=='input' && node.hasAttribute('placeholder')){
 				transElement(node, 'placeholder',true);
 			}
-            let childNodes = node.childNodes;
-            childNodes.forEach(traverseNode); // 遍历子节点
-		}else if(node.nodeType === Node.TEXT_NODE){
-			// if (!!I18N[node.nodeValue]){
-				// node.nodeValue=I18N[node.nodeValue]
-			// }else if(!!I18N[node.nodeValue.trim()]){
-				// node.nodeValue=I18N[node.nodeValue.trim()] + ' '
-			// }
-			let str=translateText(node.nodeValue)
-			if(str){
-				node.nodeValue=str
+            if (tagname=='i' && node.hasAttribute('data-tooltip')){
+				transElement(node, 'data-tooltip',true);
 			}
+            let childNodes = node.childNodes;
+			if (childNodes.length > 0) {
+				childNodes.forEach(traverseNode); // 遍历子节点
+			}else{
+				if (["stat name",'filter stats','filter seller','filter actions'].includes(node.className)) {
+					transElement(node, 'innerHTML');//innerText
+				}else if (["option","button","li","label","h1","h2","h3",].includes(tagname)){
+					transElement(node, 'innerHTML');
+				}
+			}
+		}else if(node.nodeType === Node.TEXT_NODE){
+			transElement(node, 'nodeValue');
 		}
     }
     /**
@@ -180,6 +210,7 @@
      * @param {boolean} isAttr - 是否需要翻译属性。
      */
     function transElement(el, field, isAttr = false) {
+		// if (field=='innerHTML' && /<.*>/.test(el[field])){return}
         let text = isAttr ? el.getAttribute(field) : el[field]; // 需要翻译的文本
         let str = translateText(text); // 翻译后的文本
         // 替换翻译后的内容
